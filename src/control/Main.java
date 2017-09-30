@@ -12,9 +12,13 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 public class Main {
-
+	public static final int PORTA=12345;
+	public static final int KEEPALIVETIMER=10000; //10 segundos
+	
 	public static void main(String[] args) {
-		// a jframe here isn't strictly necessary, but it makes the example a little more real
+		
+
+		/*// a jframe here isn't strictly necessary, but it makes the example a little more real
 	    JFrame frame = new JFrame("InputDialog Example #1");
 
 	    // prompt the user to enter their name
@@ -42,7 +46,11 @@ public class Main {
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		}*/
+		
 	}
+	
+	
+	
 
 }

@@ -1,53 +1,82 @@
 package net;
 
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
+import java.net.Socket;
 
+import control.Main;
 import pattern.MessageBox;
 
-public class NetConnection extends Thread{
+public class NetConnection implements Runnable{
 	
 	private InetAddress serverIp;
-	private MessageBox entrada, saida;
-	//le da entrada e manda para o server
-	//escreve resposta (se houver) na saida
+	private MessageBox entrada;
+	//escreve resposta do servidor (se houver) na entrada
 	
-	private boolean tcp,repeat; //se deve repetir o request
+	private boolean repeat; //se deve repetir o request
 	private int timer; //tempo de espera entre as repetições
+	private String message;
 	
 	
-	public NetConnection(InetAddress ip, MessageBox in, MessageBox out, boolean isTcp) {
+	public NetConnection(InetAddress ip, MessageBox in, MessageBox out) {
 		this.serverIp = ip;
 		this.entrada = in;
-		this.saida = out;
 		repeat = false;
 		timer=0;
-		tcp = isTcp;
 	}
 	
-	public NetConnection(InetAddress ip, MessageBox in, MessageBox out,boolean isTcp, int timer) { //assume que há repetição de request
+	public NetConnection(InetAddress ip, MessageBox in,String message, int timer) { //assume que há repetição de request - keepAlive
 		this.serverIp = ip;
 		this.entrada = in;
-		this.saida = out;
+		this.message=message;
 		repeat = true;
 		this.timer=timer;
-		tcp = isTcp;
+	}
+	
+	public NetConnection(InetAddress ip, MessageBox in, String message){ //assume que não há repetição
+		this.serverIp = ip;
+		this.entrada = in;
+		repeat = false;
+		this.timer=0;
+		this.message=message;
 	}
 	
 	@Override
 	public void run() {
 		do{
-			if(tcp){
-				
-			} else {
-				
-			}
 			
+			Socket clientSocket;
 			try {
-				Thread.sleep(timer);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+				clientSocket = new Socket(serverIp, Main.PORTA);
+			
+				DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
+				BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+				
+				outToServer.writeBytes(message+"\n");
+				String response = inFromServer.readLine();
+				
+				outToServer.close();
+				inFromServer.close();
+				
+				clientSocket.close();
+				
+				entrada.addMessage(response);
+			} catch (IOException ex) {
+				// TODO Auto-generated catch block
+				ex.printStackTrace();
 			}
 			
+			if(timer>0){
+				try {
+					Thread.sleep(timer);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+					break;
+				}
+			}
 		}while(repeat);
 	}
 	

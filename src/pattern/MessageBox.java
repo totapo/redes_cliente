@@ -51,10 +51,6 @@ public class MessageBox {
 	    	notifyObservers();
 	    }
 	    
-	    public String viewFirstMessage(){
-	    	return mensagens.peek();
-	    }
-	    
 	    public String getFirsMessage(){
 	    	return mensagens.poll();
 	    }

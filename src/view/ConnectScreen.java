@@ -16,8 +16,9 @@ public class ConnectScreen extends JFrame {
 	 */
 	private static final long serialVersionUID = 1L;
 	private JPanel contentPane;
-	private JTextField textField;
-	private JTextField textField_1;
+	private JTextField ip;
+	private JTextField nick;
+	private JButton btnConectar;
 
 	/**
 	 * Launch the application.
@@ -40,11 +41,11 @@ public class ConnectScreen extends JFrame {
 		
 		JLabel lblNewLabel = new JLabel("IP Servidor: ");
 		
-		textField = new JTextField();
-		textField.setColumns(10);
+		ip = new JTextField();
+		ip.setColumns(10);
 		panel.setLayout(new GridLayout(0, 2, 0, 0));
 		panel.add(lblNewLabel);
-		panel.add(textField);
+		panel.add(ip);
 		
 		JPanel panel_1 = new JPanel();
 		contentPane.add(panel_1);
@@ -53,15 +54,30 @@ public class ConnectScreen extends JFrame {
 		JLabel lblNome = new JLabel("Nome:");
 		panel_1.add(lblNome);
 		
-		textField_1 = new JTextField();
-		panel_1.add(textField_1);
-		textField_1.setColumns(15);
+		nick = new JTextField();
+		panel_1.add(nick);
+		nick.setColumns(15);
 		
 		JPanel panel_2 = new JPanel();
 		contentPane.add(panel_2);
 		
-		JButton btnConectar = new JButton("Conectar");
+		btnConectar = new JButton("Conectar");
+		btnConectar.setActionCommand("Conectar");
 		panel_2.add(btnConectar);
 	}
+	
+	public JButton getCon(){
+		return btnConectar;
+	}
+
+	public JTextField getIp() {
+		return ip;
+	}
+
+	public JTextField getNick() {
+		return nick;
+	}
+	
+	
 
 }
