@@ -3,14 +3,21 @@ package view;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+
 import java.awt.BorderLayout;
+
+import javax.swing.DefaultListModel;
 import javax.swing.JScrollPane;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JList;
+
 import java.awt.FlowLayout;
+
 import javax.swing.JLabel;
+
 import java.awt.Color;
+
 import javax.swing.border.TitledBorder;
 
 import control.MainScreenController;
@@ -121,6 +128,7 @@ public class MainScreen {
 		panel_4.add(scrollPane);
 		
 		playerList = new JList<String>();
+		playerList.setModel(new DefaultListModel<String>());
 		scrollPane.setViewportView(playerList);
 		
 		JPanel panel_5 = new JPanel();
@@ -184,6 +192,11 @@ public class MainScreen {
 
 	public JFrame getFrmReversi() {
 		return frmReversi;
+	}
+
+	public void refresh() {
+		frmReversi.repaint();
+		frmReversi.revalidate();
 	}
 	
 	

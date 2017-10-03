@@ -18,6 +18,14 @@ import view.MainScreen;
 
 public class ConnectScreenController implements ActionListener {
 	private ConnectScreen tela;
+	
+	public ConnectScreenController(ConnectScreen tela){
+		this.tela = tela;
+		tela.getCon().addActionListener(this);
+		tela.pack();
+	    tela.setVisible(true);
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if(e.getActionCommand().equals(tela.getCon().getActionCommand())){
@@ -26,7 +34,10 @@ public class ConnectScreenController implements ActionListener {
 			
 			nick = nick.trim();
 			ip = ip.trim();
-			
+			if(nick.matches(";") || nick.matches("|") || nick.matches(",")) {
+				JOptionPane.showConfirmDialog(tela,"Nickname inválido","Erro",JOptionPane.ERROR_MESSAGE);
+				nick="";
+			}
 			if(ip.length()>0 && nick.length()>0){
 				//esse request n tem problema ser bloqueante (tipo o login msm)
 				InetAddress add=null;
@@ -66,8 +77,7 @@ public class ConnectScreenController implements ActionListener {
 							JOptionPane.showConfirmDialog(tela,"Nickname inválido","Erro",JOptionPane.ERROR_MESSAGE);
 						}
 					} catch (IOException ex) {
-						// TODO Auto-generated catch block
-						ex.printStackTrace();
+						JOptionPane.showMessageDialog(tela, ex.getMessage());
 					}
 				}
 				
