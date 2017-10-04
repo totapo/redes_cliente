@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JOptionPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
@@ -21,7 +22,8 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 	private MessageBox inFromServer;
 	private InetAddress server;
 	private boolean isPlayersTurn;
-	private String playerId,matchId,otherPlayerId;
+	private String playerId,otherPlayerId;
+	private long matchId;
 	private final ExecutorService pool;
 	private long lastRefresh=0;
 	private String selectedPlayer;
@@ -43,8 +45,9 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 		
 		pool = Executors.newCachedThreadPool();
 		pool.execute(new NetConnection(this.server,inFromServer,"2;"+playerId+"\n",Main.KEEPALIVETIMER)); //inicializa a thread que roda o keepAlive
-	
+		
 		this.isPlayersTurn=false;
+		matchId=-1;
 	}
 	
 	@Override
@@ -58,8 +61,12 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 			//encerrar partida
 		} else if(e.getActionCommand().equals(this.tela.getBtnInvite().getActionCommand())) {
 			//challenge
-			if(selectedPlayer.length()>0)
+			if(selectedPlayer.length()>0) {
 				pool.execute(new NetConnection(this.server,inFromServer,"3;"+playerId+";"+selectedPlayer+"\n"));
+				tela.getPlayerList().setSelectedIndex(-1);
+				tela.getBtnInvite().setEnabled(false);
+				tela.refresh();
+			}
 		}
 	}
 
@@ -74,9 +81,11 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 					if(params.length==3)
 						tratarKeepAlive(params);
 					break;
-				case 3: //challenge-formato resposta: "3;[playerId];[status]" 0 = convite enviado; 1 = 
+				case 3: //challenge-formato resposta: "3;[playerId];[status];[matchid?]" 0 = convite enviado; 1 = convite não enviado ; matchid só se status=0
+					tratarChallenge(params);
 					break;
-				case 4: //challResponse-formato: "4;[playerId];[challengerId];[matchId];[boolAccept]"
+				case 4: //challResponse-formato: "4;[iniciar]" 0= iniciar partida, 1=cancelar
+					tratarChallengeResponse(params);
 					break;
 				case 5: //getBoard-formato: "5;[playerId];[matchId]"
 					break;
@@ -89,6 +98,25 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 	}
 
 }
+	private void tratarChallengeResponse(String[] params) {
+		
+	}
+
+	private void tratarChallenge(String[] params) {
+		String msg="";
+		if(matchId==-1) { //se uma partida não estiver rolando
+			if(Integer.parseInt(params[1])==0) {
+				msg="Desafio enviado com sucesso! ("+params[3]+")";
+				this.matchId=Integer.parseInt(params[2]);
+			} else {
+				msg="Desafio não foi concluído!";
+				tela.getBtnInvite().setEnabled(true);
+				tela.refresh();
+			}
+			JOptionPane.showMessageDialog(tela.getFrmReversi(), msg);
+		}
+	}
+
 	//"," separa parametros internos e "|" separa as mensagens
 	private void tratarKeepAlive(String[] params) {
 		String[] mensagens = params[1].split("\\|");
@@ -104,6 +132,24 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 			tela.refresh();
 			selectedPlayer="";
 			lastRefresh = System.currentTimeMillis();
+		}
+		
+		String[] mParams;
+		for(String s:mensagens) {
+			mParams=s.split(",");
+			switch(Integer.parseInt(mParams[0])) {
+			case 3: 
+				int r = JOptionPane.showConfirmDialog(tela.getFrmReversi(), "Desafio enviado por "+mParams[1],"Desafio",JOptionPane.YES_NO_OPTION);
+				
+				if(r==JOptionPane.YES_OPTION) {
+					r=0;
+					matchId = Long.parseLong(mParams[2]);
+				} else {
+					r=1;
+				}
+				pool.execute(new NetConnection(this.server,inFromServer,"4;"+matchId+";"+r+"\n")); //inicializa a thread que roda o keepAlive
+				break;
+			}
 		}
 		
 	}
