@@ -35,6 +35,7 @@ public class MainScreen {
 	private JPanel gamePanel;
 	private JLabel playerCount;
 	private JLabel otherCount;
+	private Board b;
 
 	/**
 	 * Create the application.
@@ -62,8 +63,8 @@ public class MainScreen {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 		
 		gamePanel = new JPanel();
+		gamePanel.setLayout(new BorderLayout());
 		panel.add(gamePanel);
-		gamePanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		
 		JPanel panel_1 = new JPanel();
 		panel_1.setBounds(588, 0, 263, 495);
@@ -168,8 +169,8 @@ public class MainScreen {
 		return otherCount;
 	}
 
-	public void setTurn(boolean isPlayersTurn){
-		if(isPlayersTurn){
+	public void setTurn(boolean isBlackTurn){
+		if(isBlackTurn && !isWhite){
 			playerPiece.setBorder(BorderFactory.createLineBorder(Color.BLACK));
 			otherPiece.setBorder(BorderFactory.createEmptyBorder());
 		} else {
@@ -178,12 +179,15 @@ public class MainScreen {
 		}
 	}
 	
-	public void startGame(String gameLabel){
+	public void startGame(int bSize){
 		//TODO seta os parametros do panel de status do jogo
+		this.b = new Board(bSize);
+		this.gamePanel.setLayout(new BorderLayout());
+		this.gamePanel.add(b);
 	}
 	
-	public void drawBoard(MainScreenController ctrl, int[][] board){
-		//TODO
+	public void drawBoard(MainScreenController ctrl, int[][] board, int[][] moves){
+		b.updateBoard(board, moves, ctrl);
 	}
 	
 	public void setPlayerColor(boolean isWhite){
@@ -197,6 +201,16 @@ public class MainScreen {
 	public void refresh() {
 		frmReversi.repaint();
 		frmReversi.revalidate();
+	}
+
+	public void setCounts(int wCount, int blCount) {
+		if(isWhite){
+			this.playerCount.setText(""+wCount);
+			this.otherCount.setText(""+blCount);
+		} else {
+			this.playerCount.setText(""+blCount);
+			this.otherCount.setText(""+wCount);
+		}
 	}
 	
 	
