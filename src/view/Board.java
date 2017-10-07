@@ -7,6 +7,7 @@ import java.awt.event.MouseListener;
 import javax.swing.JPanel;
 
 public class Board extends JPanel{
+	//classe que representa o painel onde o tabuleiro é exibido na tela principal
 	/**
 	 * 
 	 */

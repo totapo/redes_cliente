@@ -10,7 +10,7 @@ import java.awt.GridLayout;
 import javax.swing.JButton;
 
 public class ConnectScreen extends JFrame {
-
+	//tela para fazer a conexão inicial
 	/**
 	 * 
 	 */

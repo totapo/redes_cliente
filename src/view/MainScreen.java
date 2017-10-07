@@ -26,7 +26,7 @@ import javax.swing.UIManager;
 import javax.swing.JButton;
 
 public class MainScreen {
-
+	//tela principal
 	private JFrame frmReversi;
 	private JLabel gameLabel;
 	private JPanel playerPiece;

@@ -8,7 +8,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 //observer pattern (thread safe)-> código retirado de https://www.techyourchance.com/thread-safe-observer-design-pattern-in-java/
 
 public class MessageBox {
+		//classe que repsenta uma caixa de mensagens, a ideia era fazer algo como um repositorio onde
+		//as threads que conversam com o servidor colocam as mensagens recebidas e, de tempos em tempos, a thread principal
+		//verificaria todas as mensagens
+		//porém, como não soubemos trabalhar muito bem com as threads, essa classe acabou se tornando um meio de acesso
+		//à controladora principal da aplicação para que as
+		//threads que falam com o servidor possam fazer as devidas alterações (sem que haja troca de mensagem entre as threads)
 		
+	
 	    // Can use CopyOnWriteArraySet too
 	    private final Set<Observer> mObservers = Collections.newSetFromMap(
 	            new ConcurrentHashMap<Observer, Boolean>(0));

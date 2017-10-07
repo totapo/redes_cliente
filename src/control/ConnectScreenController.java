@@ -17,6 +17,7 @@ import view.ConnectScreen;
 import view.MainScreen;
 
 public class ConnectScreenController implements ActionListener {
+	//controladora responsável pela tela de "login" da aplicação
 	private ConnectScreen tela;
 	
 	public ConnectScreenController(ConnectScreen tela){
@@ -27,13 +28,14 @@ public class ConnectScreenController implements ActionListener {
 	}
 	
 	@Override
-	public void actionPerformed(ActionEvent e) {
+	public void actionPerformed(ActionEvent e) {//executado quando o usuario clica em conectar
 		if(e.getActionCommand().equals(tela.getCon().getActionCommand())){
 			String ip = tela.getIp().getText();
 			String nick = tela.getNick().getText();
 			
 			nick = nick.trim();
 			ip = ip.trim();
+			//o nome do usuário não pode conter os caracteres abaixo pois eles são importantes no nosso protocolo
 			if(nick.matches(";") || nick.matches("|") || nick.matches(",")) {
 				JOptionPane.showConfirmDialog(tela,"Nickname inválido","Erro",JOptionPane.ERROR_MESSAGE);
 				nick="";
@@ -49,6 +51,7 @@ public class ConnectScreenController implements ActionListener {
 					
 				}
 				
+				//se o endereço do servidor existe
 				if(add!=null){
 					Socket clientSocket;
 					try {
@@ -64,7 +67,7 @@ public class ConnectScreenController implements ActionListener {
 						inFromServer.close();
 						clientSocket.close();
 						if(response.equals("1;0")){
-							//login success
+							//login success, destroi a tela atual e inicia a tela principal, sua controladora e a caixa de entrada
 							tela.dispose();
 							
 							MessageBox inServer;

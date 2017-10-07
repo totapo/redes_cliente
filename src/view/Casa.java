@@ -8,7 +8,7 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 public class Casa extends JPanel {
-
+	//classe que representa cada casa no tabuleiro
 	/**
 	 * 
 	 */
@@ -39,7 +39,17 @@ public class Casa extends JPanel {
 	@Override
     public void paintComponent(Graphics g) {
 		Dimension d = this.getSize();
-		g.setColor(Color.GREEN);
+		if(xCord%2==0)
+			if(yCord%2==0)
+				g.setColor(new Color(62, 224, 38));//light
+			else
+				g.setColor(new Color(30,140,14)); //dark
+		else
+			if(yCord%2==0)
+				g.setColor(new Color(30,140,14)); //dark
+			else
+				g.setColor(new Color(62, 224, 38));//light
+		
 		g.fillRect(0, 0, d.width, d.height);
 		if(tipo==2){
 			g.setColor(Color.yellow);
