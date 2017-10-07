@@ -13,6 +13,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JList;
 
 import java.awt.GridLayout;
+import java.awt.event.MouseListener;
 
 import javax.swing.JLabel;
 
@@ -20,7 +21,6 @@ import java.awt.Color;
 
 import javax.swing.border.TitledBorder;
 
-import control.MainScreenController;
 
 import javax.swing.UIManager;
 import javax.swing.JButton;
@@ -179,15 +179,19 @@ public class MainScreen {
 		}
 	}
 	
-	public void startGame(int bSize){
+	public void startGame(int bSize, MouseListener ctrl){
 		//TODO seta os parametros do panel de status do jogo
-		this.b = new Board(bSize);
+		this.b = new Board(bSize,ctrl);
 		this.gamePanel.setLayout(new BorderLayout());
 		this.gamePanel.add(b,BorderLayout.CENTER);
 	}
 	
-	public void drawBoard(MainScreenController ctrl, int[][] board, int[][] moves){
-		b.updateBoard(board, moves, ctrl);
+	public void resetBoard(){
+		this.b.clear();
+	}
+	
+	public void drawBoard(int[][] board, int[][] moves){
+		b.updateBoard(board, moves);
 	}
 	
 	public void setPlayerColor(boolean isWhite){
@@ -228,7 +232,7 @@ public class MainScreen {
 		this.playerCount.setText("");
 		this.playerPiece.removeAll();
 		this.otherPiece.removeAll();
-		
+		this.b.clearListeners();
 		this.playerPiece.setBorder(BorderFactory.createEmptyBorder());
 		this.otherPiece.setBorder(BorderFactory.createEmptyBorder());
 		

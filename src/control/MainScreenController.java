@@ -1,12 +1,12 @@
 package control;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
@@ -20,6 +20,7 @@ import javax.swing.event.ListSelectionListener;
 import net.NetConnection;
 import pattern.MessageBox;
 import pattern.Observer;
+import view.Casa;
 import view.MainScreen;
 
 public class MainScreenController implements Observer, ActionListener, ListSelectionListener, MouseListener, WindowListener{
@@ -33,6 +34,8 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 	private long lastRefresh=0;
 	private String selectedPlayer;
 	private boolean inGame;
+	private int lastX;
+	private int lastY;
 	
 	public MainScreenController(MainScreen s, MessageBox inServer, String nick, InetAddress server){
 		this.tela=s;
@@ -55,8 +58,12 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 		matchId=-1;
 		inGame=false;
 		
-		tela.startGame(8);
+		tela.startGame(8,this);
 		habilitarInvite(true);
+		
+		lastX=lastY=-1;
+		
+		tela.getFrmReversi().setTitle(tela.getFrmReversi().getTitle()+" "+playerId);
 	}
 	
 	@Override
@@ -68,6 +75,7 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 	public void actionPerformed(ActionEvent e) {
 		if(e.getActionCommand().equals(this.tela.getBtnEncerrar().getActionCommand())){
 			//encerrar partida
+			pool.execute(new NetConnection(this.server,inFromServer,"7;"+playerId+";"+matchId+"\n"));
 		} else if(e.getActionCommand().equals(this.tela.getBtnInvite().getActionCommand())) {
 			//challenge
 			if(selectedPlayer.length()>0) {
@@ -85,10 +93,9 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 			if(params.length>0){
 				switch(Integer.parseInt(params[0].trim())){
 				case 2: //keepAlive-formato resposta: "2;[mensagens];[listajogadores]"
-					System.out.println(msg);
 					tratarKeepAlive(params);
 					break;
-				case 3: //challenge-formato resposta: "3;[playerId];[status];[matchid?]" 0 = convite enviado; 1 = convite não enviado ; matchid só se status=0
+				case 3: //challenge-formato resposta: "3;[playerId];[status];[matchid?]" status 0 = convite enviado; 1 = convite não enviado ; matchid só se status=0
 					tratarChallenge(params);
 					break;
 				case 4: //challResponse-formato: "4;[iniciar]" 0= iniciar partida, 1=cancelar
@@ -98,15 +105,37 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 					//System.out.println(msg);
 					updateBoard(params);
 					break;
-				case 6: //makeMove-formato: "6;[playerId];[matchId];[xCoordinate];[yCoordinate]"
+				case 6: //makeMove-formato resposta: "6;[isOk];[5params]" isOk=0 deu certo, isOk =1 fail tem q repetir
+					makeMoveResponse(params);
 					break;
-				case 7: //endMatch-formato: "7;[playerId];[matchId]"
+				case 8: //getwinner response formato: "8;[winnerId]"
+					showWinner(params);
 					break;
 				}
 		}
 	}
 
 }
+	private void showWinner(String[] params) {
+		String winnerName = params[1];
+		if(winnerName.trim().length()>0){
+			JOptionPane.showMessageDialog(tela.getFrmReversi(), winnerName+" venceu a partida!");
+		} else {
+			JOptionPane.showMessageDialog(tela.getFrmReversi(), "A partida terminou em empate!");
+		}
+		clearGame();
+	}
+
+	private void makeMoveResponse(String[] params) {
+		if(Integer.parseInt(params[1])==0){
+			params = Arrays.copyOfRange(params, 1, params.length);
+			updateBoard(params);
+		} else {
+			JOptionPane.showMessageDialog(tela.getFrmReversi(), "Movimento não foi registrado, tente novamente");
+		}
+		this.lastX=lastY=-1;
+	}
+
 	private void updateBoard(String[] params) {
 		int[][]boardState,moves;
 		
@@ -138,18 +167,17 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 				moves[l][1]=Integer.parseInt(cols[1]);
 			}
 		}
-		for(int[] a:boardState)
-			System.out.println(Arrays.toString(a));
+		
 		if(inGame){
 			//nao precisa criar o tabuleiro, só faz o update msm
-			tela.drawBoard(this, boardState, moves);
+			tela.drawBoard(boardState, moves);
 			
 		} else{
-			tela.startGame(boardState.length);	
+			tela.resetBoard();	
 			tela.setPlayerColor(this.playerId.equals(params[2].trim()));
 
 			
-			tela.drawBoard(this, boardState, moves);
+			tela.drawBoard(boardState, moves);
 			inGame=true;
 		}
 		
@@ -160,6 +188,7 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 			tela.setTurn((turn==0));
 		}else{
 			tela.getGameLabel().setText("Jogo encerrado");
+			pool.execute(new NetConnection(this.server,inFromServer,"8;"+this.playerId+";"+this.matchId+"\n")); //pede o vencedor do jogo
 		}
 		
 		tela.setCounts(wCount,blCount);
@@ -239,7 +268,7 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 						}
 						
 						pool.execute(new NetConnection(this.server,inFromServer,"4;"+matchId+";"+r+"\n")); //thread que envia a resposta do desafio 
-						matchId=-1;
+						matchId=(r==1)?-1:matchId;
 						break;
 					}
 				case 5:
@@ -260,6 +289,10 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 
 	
 	private void clearGame() {
+		this.inGame=false;
+		this.lastX=lastY=-1;
+		this.matchId=-1;
+		this.otherPlayerId="";
 		tela.limparJogo();
 		tela.refresh();
 	}
@@ -267,7 +300,15 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 	//ESCUTA TABULEIRO
 	@Override
 	public void mouseClicked(MouseEvent arg) {
-		
+		Component source = arg.getComponent();
+		if(source.getClass().equals(Casa.class)){
+			Casa src = (Casa) source;
+			if(lastX==-1 && lastY==-1){
+				lastX = src.getX();
+				lastY=src.getY();
+				pool.execute(new NetConnection(this.server,inFromServer,"6;"+playerId+";"+matchId+";"+src.getXCord()+";"+src.getYCord()+"\n"));	
+			}
+		}
 	}
 
 	@Override

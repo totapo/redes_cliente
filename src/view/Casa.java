@@ -50,4 +50,8 @@ public class Casa extends JPanel {
 		}
     }
 
+	public int getTipo() {
+		return tipo;
+	}
+
 }
