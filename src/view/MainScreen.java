@@ -170,17 +170,26 @@ public class MainScreen {
 	}
 
 	public void setTurn(boolean isBlackTurn){
-		if(isBlackTurn && !isWhite){
-			playerPiece.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-			otherPiece.setBorder(BorderFactory.createEmptyBorder());
+		if(!isWhite){
+			if(isBlackTurn){
+				playerPiece.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+				otherPiece.setBorder(BorderFactory.createEmptyBorder());	
+			} else {
+				otherPiece.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+				playerPiece.setBorder(BorderFactory.createEmptyBorder());
+			}
 		} else {
-			otherPiece.setBorder(BorderFactory.createLineBorder(Color.BLACK));
-			playerPiece.setBorder(BorderFactory.createEmptyBorder());
+			if(isBlackTurn){
+				otherPiece.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+				playerPiece.setBorder(BorderFactory.createEmptyBorder());
+			} else {
+				playerPiece.setBorder(BorderFactory.createLineBorder(Color.BLACK));
+				otherPiece.setBorder(BorderFactory.createEmptyBorder());
+			}
 		}
 	}
 	
 	public void startGame(int bSize, MouseListener ctrl){
-		//TODO seta os parametros do panel de status do jogo
 		this.b = new Board(bSize,ctrl);
 		this.gamePanel.setLayout(new BorderLayout());
 		this.gamePanel.add(b,BorderLayout.CENTER);

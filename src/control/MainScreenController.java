@@ -102,7 +102,6 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 					tratarChallengeResponse(params);
 					break;
 				case 5: //getBoard-formato: "5;[blackId];[whiteId];[board];[possibleMoves];[blackCount];[whiteCount];[turn]" turn=0 black; turn=1 white; turn=-1 encerrado
-					//System.out.println(msg);
 					updateBoard(params);
 					break;
 				case 6: //makeMove-formato resposta: "6;[isOk];[5params]" isOk=0 deu certo, isOk =1 fail tem q repetir
@@ -225,17 +224,20 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 		}
 	}
 	
+	//habilita o botao para envio de convites aos jogadores
 	public void habilitarInvite(boolean hab){
-		//tela.getPlayerList().setSelectedIndex(-1);
 		tela.getBtnInvite().setEnabled(hab);
 		tela.refresh();
 	}
 
 	//"," separa parametros internos e "|" separa as mensagens
-	private void tratarKeepAlive(String[] params) {
+	private void tratarKeepAlive(String[] params) { //responsável por tratar as mensagens recebidas como resposta do keepAlive
 		String[] mensagens = params[1].trim().split("\\|");
 		String[] jogadores = params[2].trim().split("\\|");
+		//keep alive tem dois parametros, um deles é a lista de jogadores online e o outro é a lista de mensagens na "caixa" do usuário
 		
+		//atualiza  a lista de jogadores online, de acordo com o timer (keep alive roda a cada 5 segundos,
+		//se a lista atualizasse tao rapido não seria fácil selecionar um jogador para desafiar)
 		DefaultListModel<String> modelo = (DefaultListModel<String>)tela.getPlayerList().getModel();
 		if(modelo.isEmpty() || System.currentTimeMillis()-lastRefresh>Main.KEEPALIVETIMER){
 			modelo.clear();
@@ -248,13 +250,14 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 			lastRefresh = System.currentTimeMillis();
 		}
 		
+		//le as mensagens enfileiradas para o jogaodr
 		String[] mParams;
 		for(String s:mensagens) {
 			if(s.length()>0){
 				System.out.println(s);
 				mParams=s.split(",");
 				switch(Integer.parseInt(mParams[0])) {
-				case 3: 
+				case 3: //desafio recebido
 					if(matchId==-1){ //se o jogador nao estiver no meio de um jogo ele pode responder ao desafio
 						int r = JOptionPane.showConfirmDialog(tela.getFrmReversi(), "Desafio enviado por "+mParams[1],"Desafio",JOptionPane.YES_NO_OPTION);
 
@@ -271,14 +274,16 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 						matchId=(r==1)?-1:matchId;
 						break;
 					}
-				case 5:
+				case 5: //deve atualizar o tabuleiro
 					int ok = Integer.parseInt(mParams[1]);
 					if(ok==0)
+						//faz a requisição que traz os dados atualizados
 						pool.execute(new NetConnection(this.server,inFromServer,"5;"+playerId+";"+matchId+"\n")); //pede o tabuleiro e as informações do jogo ao servidor
 					else
-						clearGame();//TODO cancelar partida
+						//caso haja um problema, limpa o estado do jogo atual
+						clearGame();//
 					break;
-				case 7:
+				case 7: //caso a partida tenha sido encerrada, exibe um alerta com o motivo e limpa o estado do jogo atual
 					JOptionPane.showMessageDialog(this.tela.getFrmReversi(), mParams[1]);
 					clearGame();
 				}
@@ -288,7 +293,7 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 	}
 
 	
-	private void clearGame() {
+	private void clearGame() { //limpa o estado do jogo atual, para que o usuario possa começar um novo se quiser
 		this.inGame=false;
 		this.lastX=lastY=-1;
 		this.matchId=-1;
@@ -303,7 +308,7 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 		Component source = arg.getComponent();
 		if(source.getClass().equals(Casa.class)){
 			Casa src = (Casa) source;
-			if(lastX==-1 && lastY==-1){
+			if(lastX==-1 && lastY==-1){ //se já não enviou um request para fazer um movimento ao servidor
 				lastX = src.getX();
 				lastY=src.getY();
 				pool.execute(new NetConnection(this.server,inFromServer,"6;"+playerId+";"+matchId+";"+src.getXCord()+";"+src.getYCord()+"\n"));	
@@ -329,50 +334,38 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 
 	@Override
 	public void windowActivated(WindowEvent arg0) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void windowClosed(WindowEvent e) {
 		for(Runnable worker : pool.shutdownNow()){
-			/*if(worker.getClass().equals(NetConnection.class)){
-				try {
-					((NetConnection)worker).(); //mata os sockets ainda abertos
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}*/
+			
 		}
 	}
 
 	@Override
 	public void windowClosing(WindowEvent e) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void windowDeactivated(WindowEvent e) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void windowDeiconified(WindowEvent e) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void windowIconified(WindowEvent e) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void windowOpened(WindowEvent e) {
-		// TODO Auto-generated method stub
 		
 	}
 }
