@@ -14,22 +14,22 @@ public class Casa extends JPanel {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private int x,y;
+	private int xCord,yCord;
 	private int tipo;
 	
 	public Casa(int tipo, int x, int y){
-		this.x=x;
-		this.y=y;
+		this.xCord=x;
+		this.yCord=y;
 		this.tipo=tipo;
 		this.setBorder(BorderFactory.createLineBorder(Color.black));
 	}
 	
-	public int getX(){
-		return x;
+	public int getXCord(){
+		return xCord;
 	}
 	
-	public int getY(){
-		return y;
+	public int getYCord(){
+		return yCord;
 	}
 	
 	public void setTipo(int tipo){
@@ -43,9 +43,9 @@ public class Casa extends JPanel {
 		g.fillRect(0, 0, d.width, d.height);
 		if(tipo==2){
 			g.setColor(Color.yellow);
-			g.fillOval(15, 15, d.width-30, d.height-30);
+			g.fillOval(d.width/3, d.height/3, d.width/3, d.height/3);
 		} else if(tipo!=0){
-			g.setColor((tipo==-1)?Color.black:Color.white);
+			g.setColor((tipo==1)?Color.black:Color.white);
 			g.fillOval(5, 5, d.width-10, d.height-10);
 		}
     }

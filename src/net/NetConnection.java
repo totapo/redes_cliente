@@ -51,21 +51,21 @@ public class NetConnection implements Runnable{
 			Socket clientSocket;
 			try {
 				clientSocket = new Socket(serverIp, Main.PORTA);
-			
+				System.out.println("socket: "+clientSocket.getLocalPort()+" server: "+clientSocket.getPort());
 				DataOutputStream outToServer = new DataOutputStream(clientSocket.getOutputStream());
 				BufferedReader inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 				
 				outToServer.writeBytes(message+"\n");
 				String response = inFromServer.readLine();
-				
+			
 				outToServer.close();
 				inFromServer.close();
 				
 				clientSocket.close();
-				
-				entrada.addMessage(response);
+				if(response!=null && response.length()>0)
+					entrada.addMessage(response);
 			} catch (IOException ex) {
-				// TODO Auto-generated catch block
+				System.out.println("erro! "+System.currentTimeMillis());
 				ex.printStackTrace();
 			}
 			

@@ -4,6 +4,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
@@ -19,7 +22,7 @@ import pattern.MessageBox;
 import pattern.Observer;
 import view.MainScreen;
 
-public class MainScreenController implements Observer, ActionListener, ListSelectionListener, MouseListener{
+public class MainScreenController implements Observer, ActionListener, ListSelectionListener, MouseListener, WindowListener{
 
 	private MainScreen tela;
 	private MessageBox inFromServer;
@@ -51,6 +54,9 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 		
 		matchId=-1;
 		inGame=false;
+		
+		tela.startGame(8);
+		habilitarInvite(true);
 	}
 	
 	@Override
@@ -77,10 +83,10 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 		while((msg=inFromServer.getFirsMessage())!=null){
 			String[] params = msg.split(";");
 			if(params.length>0){
-				switch(Integer.parseInt(params[0])){
+				switch(Integer.parseInt(params[0].trim())){
 				case 2: //keepAlive-formato resposta: "2;[mensagens];[listajogadores]"
-					if(params.length==3)
-						tratarKeepAlive(params);
+					System.out.println(msg);
+					tratarKeepAlive(params);
 					break;
 				case 3: //challenge-formato resposta: "3;[playerId];[status];[matchid?]" 0 = convite enviado; 1 = convite não enviado ; matchid só se status=0
 					tratarChallenge(params);
@@ -89,7 +95,7 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 					tratarChallengeResponse(params);
 					break;
 				case 5: //getBoard-formato: "5;[blackId];[whiteId];[board];[possibleMoves];[blackCount];[whiteCount];[turn]" turn=0 black; turn=1 white; turn=-1 encerrado
-					System.out.println(msg);
+					//System.out.println(msg);
 					updateBoard(params);
 					break;
 				case 6: //makeMove-formato: "6;[playerId];[matchId];[xCoordinate];[yCoordinate]"
@@ -104,12 +110,12 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 	private void updateBoard(String[] params) {
 		int[][]boardState,moves;
 		
-		String b = params[3];
-		String m = params[4];
+		String b = params[3].trim();
+		String m = params[4].trim();
 		
 		int blCount,wCount;
-		wCount = Integer.parseInt(params[6]);
-		blCount = Integer.parseInt(params[5]);
+		wCount = Integer.parseInt(params[6].trim());
+		blCount = Integer.parseInt(params[5].trim());
 		
 		String[] cols, rows=b.split("\\|");
 		
@@ -123,14 +129,13 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 		
 		moves=null;
 		
-		if(params[4].length()>0){
+		if(params[4].trim().length()>0){
 			rows = m.split("\\|");
 			moves = new int[rows.length][2];
 			for(int l=0; l<moves.length; l++){
 				cols = rows[l].split(",");
-				for(int c=0; c<moves.length; c++){
-					moves[l][c]=Integer.parseInt(cols[c]);
-				}
+				moves[l][0]=Integer.parseInt(cols[0]);
+				moves[l][1]=Integer.parseInt(cols[1]);
 			}
 		}
 		for(int[] a:boardState)
@@ -139,17 +144,19 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 			//nao precisa criar o tabuleiro, só faz o update msm
 			tela.drawBoard(this, boardState, moves);
 			
-			tela.setPlayerColor(this.playerId.equals(params[2]));
 		} else{
-			tela.startGame(boardState.length);
+			tela.startGame(boardState.length);	
+			tela.setPlayerColor(this.playerId.equals(params[2].trim()));
+
+			
 			tela.drawBoard(this, boardState, moves);
 			inGame=true;
 		}
 		
-		int turn = Integer.parseInt(params[7]);
+		int turn = Integer.parseInt(params[7].trim());
 		
 		if(turn>=0){
-			tela.getGameLabel().setText("Turno atual: "+((turn==0)?"Pretas":"Brancas"));
+			tela.getGameLabel().setText(this.playerId+" versus "+this.otherPlayerId);
 			tela.setTurn((turn==0));
 		}else{
 			tela.getGameLabel().setText("Jogo encerrado");
@@ -161,7 +168,7 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 	}
 
 	private void tratarChallengeResponse(String[] params) {
-		if(Integer.parseInt(params[1])==0){
+		if(Integer.parseInt(params[1].trim())==0){
 			//start match
 			JOptionPane.showMessageDialog(tela.getFrmReversi(), "Partida com "+otherPlayerId+" iniciará em instantes.");
 		} else {
@@ -176,9 +183,10 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 	private void tratarChallenge(String[] params) {
 		String msg="";
 		if(matchId==-1) { //se uma partida não estiver rolando
-			if(Integer.parseInt(params[1])==0) {
-				msg="Desafio enviado com sucesso! ("+params[3]+")";
-				this.matchId=Integer.parseInt(params[2]);
+			if(Integer.parseInt(params[1].trim())==0) {
+				msg="Desafio enviado com sucesso! ("+params[3].trim()+")";
+				this.otherPlayerId=params[3].trim();
+				this.matchId=Integer.parseInt(params[2].trim());
 			} else {
 				msg="Desafio não foi concluído!";
 				tela.getBtnInvite().setEnabled(true);
@@ -196,8 +204,8 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 
 	//"," separa parametros internos e "|" separa as mensagens
 	private void tratarKeepAlive(String[] params) {
-		String[] mensagens = params[1].split("\\|");
-		String[] jogadores = params[2].split("\\|");
+		String[] mensagens = params[1].trim().split("\\|");
+		String[] jogadores = params[2].trim().split("\\|");
 		
 		DefaultListModel<String> modelo = (DefaultListModel<String>)tela.getPlayerList().getModel();
 		if(modelo.isEmpty() || System.currentTimeMillis()-lastRefresh>Main.KEEPALIVETIMER){
@@ -220,17 +228,18 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 				case 3: 
 					if(matchId==-1){ //se o jogador nao estiver no meio de um jogo ele pode responder ao desafio
 						int r = JOptionPane.showConfirmDialog(tela.getFrmReversi(), "Desafio enviado por "+mParams[1],"Desafio",JOptionPane.YES_NO_OPTION);
-						
+
+						matchId = Long.parseLong(mParams[2]);
+						this.otherPlayerId=mParams[1];
 						if(r==JOptionPane.YES_OPTION) {
 							r=0;
-							this.otherPlayerId=mParams[1];
-							matchId = Long.parseLong(mParams[2]);
 							habilitarInvite(false);
 						} else {
 							r=1;
 						}
 						
 						pool.execute(new NetConnection(this.server,inFromServer,"4;"+matchId+";"+r+"\n")); //thread que envia a resposta do desafio 
+						matchId=-1;
 						break;
 					}
 				case 5:
@@ -238,7 +247,11 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 					if(ok==0)
 						pool.execute(new NetConnection(this.server,inFromServer,"5;"+playerId+";"+matchId+"\n")); //pede o tabuleiro e as informações do jogo ao servidor
 					else
-						;//TODO cancelar partida
+						clearGame();//TODO cancelar partida
+					break;
+				case 7:
+					JOptionPane.showMessageDialog(this.tela.getFrmReversi(), mParams[1]);
+					clearGame();
 				}
 			}
 		}
@@ -246,6 +259,11 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 	}
 
 	
+	private void clearGame() {
+		tela.limparJogo();
+		tela.refresh();
+	}
+
 	//ESCUTA TABULEIRO
 	@Override
 	public void mouseClicked(MouseEvent arg) {
@@ -266,5 +284,54 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
+	}
+
+	@Override
+	public void windowActivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosed(WindowEvent e) {
+		for(Runnable worker : pool.shutdownNow()){
+			/*if(worker.getClass().equals(NetConnection.class)){
+				try {
+					((NetConnection)worker).(); //mata os sockets ainda abertos
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}*/
+		}
+	}
+
+	@Override
+	public void windowClosing(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowIconified(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowOpened(WindowEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 }

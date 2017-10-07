@@ -12,7 +12,7 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JList;
 
-import java.awt.FlowLayout;
+import java.awt.GridLayout;
 
 import javax.swing.JLabel;
 
@@ -63,7 +63,7 @@ public class MainScreen {
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 		
 		gamePanel = new JPanel();
-		gamePanel.setLayout(new BorderLayout());
+		gamePanel.setLayout(new GridLayout(1,1));
 		panel.add(gamePanel);
 		
 		JPanel panel_1 = new JPanel();
@@ -183,7 +183,7 @@ public class MainScreen {
 		//TODO seta os parametros do panel de status do jogo
 		this.b = new Board(bSize);
 		this.gamePanel.setLayout(new BorderLayout());
-		this.gamePanel.add(b);
+		this.gamePanel.add(b,BorderLayout.CENTER);
 	}
 	
 	public void drawBoard(MainScreenController ctrl, int[][] board, int[][] moves){
@@ -192,6 +192,15 @@ public class MainScreen {
 	
 	public void setPlayerColor(boolean isWhite){
 		this.isWhite=isWhite;
+		
+		this.playerPiece.removeAll();
+		this.otherPiece.removeAll();
+		
+		this.playerPiece.setLayout(new GridLayout(1,1));
+		this.otherPiece.setLayout(new GridLayout(1,1));
+		
+		this.playerPiece.add(new Casa((isWhite)?-1:1,0,0));
+		this.otherPiece.add(new Casa((isWhite)?1:-1,0,0));
 	}
 
 	public JFrame getFrmReversi() {
@@ -212,7 +221,19 @@ public class MainScreen {
 			this.otherCount.setText(""+wCount);
 		}
 	}
-	
-	
+
+	public void limparJogo() {
+		this.btnEncerrar.setEnabled(false);
+		this.gameLabel.setText("");
+		this.playerCount.setText("");
+		this.playerPiece.removeAll();
+		this.otherPiece.removeAll();
+		
+		this.playerPiece.setBorder(BorderFactory.createEmptyBorder());
+		this.otherPiece.setBorder(BorderFactory.createEmptyBorder());
+		
+		this.otherCount.setText("");
+		this.btnInvite.setEnabled(true);
+	}
 	
 }
