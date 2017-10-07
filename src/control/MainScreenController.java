@@ -187,6 +187,7 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 			
 		} else{ //se o jogo ainda não começou, limpa o tabuleiro antigo e desenha o novo
 			tela.resetBoard();	
+			this.tela.getBtnEncerrar().setEnabled(true);
 			tela.setPlayerColor(this.playerId.equals(params[2].trim()));
 
 			
