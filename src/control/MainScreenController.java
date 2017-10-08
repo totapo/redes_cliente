@@ -295,7 +295,7 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 					}
 					break;
 				case 5: //deve atualizar o tabuleiro
-					if(this.matchId==Integer.parseInt(params[2])){
+					if(this.matchId==Integer.parseInt(mParams[2])){
 						int ok = Integer.parseInt(mParams[1]);
 						if(ok==0)
 							//faz a requisição que traz os dados atualizados
