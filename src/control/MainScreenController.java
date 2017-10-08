@@ -292,17 +292,19 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 						
 						pool.execute(new NetConnection(this.server,inFromServer,"4;"+matchId+";"+r+"\n")); //thread que envia a resposta do desafio 
 						matchId=(r==1)?-1:matchId;
+					}
+					break;
+				case 5: //deve atualizar o tabuleiro
+					if(this.matchId==Integer.parseInt(params[2])){
+						int ok = Integer.parseInt(mParams[1]);
+						if(ok==0)
+							//faz a requisição que traz os dados atualizados
+							pool.execute(new NetConnection(this.server,inFromServer,"5;"+playerId+";"+matchId+"\n")); //pede o tabuleiro e as informações do jogo ao servidor
+						else
+							//caso haja um problema, limpa o estado do jogo atual
+							clearGame();//
 						break;
 					}
-				case 5: //deve atualizar o tabuleiro
-					int ok = Integer.parseInt(mParams[1]);
-					if(ok==0)
-						//faz a requisição que traz os dados atualizados
-						pool.execute(new NetConnection(this.server,inFromServer,"5;"+playerId+";"+matchId+"\n")); //pede o tabuleiro e as informações do jogo ao servidor
-					else
-						//caso haja um problema, limpa o estado do jogo atual
-						clearGame();//
-					break;
 				case 7: //caso a partida tenha sido encerrada, exibe um alerta com o motivo e limpa o estado do jogo atual
 					JOptionPane.showMessageDialog(this.tela.getFrmReversi(), mParams[1]);
 					clearGame();
