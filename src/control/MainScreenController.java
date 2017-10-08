@@ -303,8 +303,8 @@ public class MainScreenController implements Observer, ActionListener, ListSelec
 						else
 							//caso haja um problema, limpa o estado do jogo atual
 							clearGame();//
-						break;
 					}
+					break;
 				case 7: //caso a partida tenha sido encerrada, exibe um alerta com o motivo e limpa o estado do jogo atual
 					JOptionPane.showMessageDialog(this.tela.getFrmReversi(), mParams[1]);
 					clearGame();
